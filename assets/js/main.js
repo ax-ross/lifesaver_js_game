@@ -1,23 +1,58 @@
 function getRandPos(width, height) {
+    let res = [];
     let x_coords = Math.floor(Math.random() * (width - 0));
     x_coords -= x_coords % 64;
     let y_coords = Math.floor(Math.random() * (height - 100) + 100);
     y_coords -= y_coords % 64;
-    return [x_coords, y_coords];
+    res.push(x_coords);
+    res.push(y_coords);
+    return res;
+}
+
+function checkCoords(x_coords, y_coords, stones) {
+    for (let k = 0; k < 10; k += 1) {
+        // console.log(`iteration check ${k}, x = ${x_coords}, y = ${y_coords}, stones[k][0] = ${stones[k][0]}, stones[k][1] = ${stones[k][1]}`)
+        if (stones[k][0] == x_coords && stones[k][1] == y_coords) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isVisited(x, y) {
+    let id = `${x}${y}`;
+    console.log(x, y);
+    let cls = $('#' + id).attr("class");
+    let clsList = cls.split(/\s+/);
+    for (let el of clsList) {
+        if (el == 'ground') {
+            $(`#${x}${y}`).removeClass('ground');
+        }
+    }
+
 }
 
 $(document).ready(function () {
+    const player = {
+        x: 0,
+        y: 0
+    }
     let stones = [];
     let width = $(window).width() - 63;
     let height = $(window).height() - 64;
     let max_w;
     for (let i = 0; i < 10; i++) {
-        
-        stones.push([getRandPos])
+        stones.push(getRandPos(width, height));
     }
     for (let i = 0; i < width; i += 64) {
         for (let j = 0; j < height; j += 64) {
-            $(".field").append(`<div class="cell ground" style="left: ${i}px; top: ${j}px;"></div>`);
+            if (i == 0 && j == 0) {
+                $(".field").append(`<div class="cell" id="${i}${j}" style="left: ${i}px; top: ${j}px;"></div>`);
+            } else if (checkCoords(i, j, stones)) {
+                $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
+            } else {
+                $(".field").append(`<div class="cell ground" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
+            }
             max_w = i;
         }
     }
@@ -39,7 +74,9 @@ $(document).ready(function () {
                     $(".player").animate({
                         left: '+=64px'
                     }, 1);
+                    player.x = player.x + 64;
                 }
+                isVisited(player.x, player.y);
             }
             // влево
             if (e.keyCode == 97 || e.keyCode == 1092) {
@@ -47,7 +84,9 @@ $(document).ready(function () {
                     $(".player").animate({
                         left: '-=64px'
                     }, 1);
+                    player.x = player.x - 64;
                 }
+                isVisited(player.x, player.y);
             }
             // вниз
             if (e.keyCode == 115 || e.keyCode == 1099) {
@@ -55,7 +94,9 @@ $(document).ready(function () {
                     $(".player").animate({
                         top: '+=64px'
                     }, 1);
+                    player.y = player.y + 64;
                 }
+                isVisited(player.x, player.y);
             }
             // вверх
             if (e.keyCode == 119 || e.keyCode == 1094) {
@@ -63,8 +104,9 @@ $(document).ready(function () {
                     $(".player").animate({
                         top: '-=64px'
                     }, 1);
+                    player.y = player.y - 64;
                 }
-
+                isVisited(player.x, player.y);
             }
         });
     });

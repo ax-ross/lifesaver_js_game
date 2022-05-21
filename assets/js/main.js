@@ -39,10 +39,10 @@ function getRandPos(width, height) {
     return res;
 }
 
-// checking current position is stone by coords
-function checkStoneHere(x_coords, y_coords, stones) {
+// checking current position is el by coords
+function checkElementHere(x_coords, y_coords, el) {
     for (let k = 0; k < 10; k += 1) {
-        if (stones[k][0] === x_coords && stones[k][1] === y_coords) {
+        if (el[k][0] === x_coords && el[k][1] === y_coords) {
             return true;
         }
     }
@@ -76,6 +76,18 @@ $(document).ready(function () {
     for (let i = 0; i < 10; i++) {
         stones.push(getRandPos(width, height));
     }
+    // generating 10 randoms pos for hearts
+    let hearts = [];
+    let pos = [];
+    for (let i = 0; i < 10; i++) {
+        pos = getRandPos(width, height);
+        if (stones.includes(pos)) {
+            i--;
+            continue;
+        }
+        hearts.push(pos);
+    }
+    console.log(hearts);
 
     // field
     let max_w;
@@ -83,8 +95,10 @@ $(document).ready(function () {
         for (let j = 0; j < height; j += 64) {
             if (i === 0 && j === 0) {
                 $(".field").append(`<div class="cell" id="${i}${j}" style="left: ${i}px; top: ${j}px;"></div>`);
-            } else if (checkStoneHere(i, j, stones)) {
+            } else if (checkElementHere(i, j, stones)) {
                 $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
+            } else if (checkElementHere(i, j, hearts)) {
+                $(".field").append(`<div class="cell heart" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
             } else {
                 $(".field").append(`<div class="cell ground" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
             }

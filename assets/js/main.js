@@ -1,3 +1,4 @@
+let getHearts = 0;
 // stopwatch params
 let seconds = 0;
 let minutes = 0;
@@ -41,8 +42,18 @@ function getRandPos(width, height) {
 
 // checking current position is el by coords
 function checkElementHere(x_coords, y_coords, el) {
+
     for (let k = 0; k < 10; k += 1) {
         if (el[k][0] === x_coords && el[k][1] === y_coords) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isBusy(x, y, arr) {
+    for (let k = 0; k < arr.length; k++) {
+        if (arr[k][0] === x && arr[k][1] === y) {
             return true;
         }
     }
@@ -52,12 +63,18 @@ function checkElementHere(x_coords, y_coords, el) {
 // handling visited position
 function isVisited(x, y) {
     let id = `${x}${y}`;
-    console.log(x, y);
     let cls = $('#' + id).attr("class");
     let clsList = cls.split(/\s+/);
     for (let el of clsList) {
         if (el === 'ground') {
             $(`#${x}${y}`).removeClass('ground');
+        } else if (el === 'heart') {
+            $(`#${x}${y}`).removeClass('heart');
+            getHearts++;
+            $("#hudHearts").text(getHearts.toString() + '/10');
+            if (getHearts === 10) {
+                $("#screenRating").addClass('active');
+            }
         }
     }
 
@@ -68,26 +85,34 @@ $(document).ready(function () {
         x: 0,
         y: 0
     }
+
+    let pos = [];
+
     //window params
     let width = $(window).width() - 63;
-    let height = $(window).height() - 128;
+    let height = $(window).height() - 160;
     // generating 10 randoms pos for stones
     let stones = [];
     for (let i = 0; i < 10; i++) {
-        stones.push(getRandPos(width, height));
+        pos = getRandPos(width, height);
+        if (isBusy(pos[0], pos[1], stones)) {
+            i--;
+        } else {
+            stones.push(pos);
+        }
     }
     // generating 10 randoms pos for hearts
     let hearts = [];
-    let pos = [];
     for (let i = 0; i < 10; i++) {
         pos = getRandPos(width, height);
-        if (stones.includes(pos)) {
+        if (isBusy(pos[0], pos[1], stones) || isBusy(pos[0], pos[1], hearts)) {
             i--;
-            continue;
+        } else {
+            hearts.push(pos);
         }
-        hearts.push(pos);
     }
-    console.log(hearts);
+    console.log(stones);
+    // console.log(hearts);
 
     // field
     let max_w;

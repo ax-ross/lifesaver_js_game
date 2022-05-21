@@ -123,42 +123,50 @@ $(document).ready(function () {
             // right
             if (e.keyCode === 100 || e.keyCode === 1074) {
                 if ($(".player").offset().left < max_w) {
-                    $(".player").animate({
-                        left: '+=64px'
-                    }, 1);
-                    player.x = player.x + 64;
+                    if (!checkElementHere(player.x + 64, player.y, stones)) {
+                        $(".player").animate({
+                            left: '+=64px'
+                        }, 1);
+                        player.x = player.x + 64;
+                        isVisited(player.x, player.y);
+                    }
                 }
-                isVisited(player.x, player.y);
             }
             // left
             if (e.keyCode === 97 || e.keyCode === 1092) {
                 if ($(".player").offset().left > 0) {
-                    $(".player").animate({
-                        left: '-=64px'
-                    }, 1);
-                    player.x = player.x - 64;
+                    if (!checkElementHere(player.x - 64, player.y, stones)) {
+                        $(".player").animate({
+                            left: '-=64px'
+                        }, 1);
+                        player.x = player.x - 64;
+                        isVisited(player.x, player.y);
+                    }
                 }
-                isVisited(player.x, player.y);
             }
             // down
             if (e.keyCode === 115 || e.keyCode === 1099) {
                 if ($(".player").offset().top < height) {
-                    $(".player").animate({
-                        top: '+=64px'
-                    }, 1);
-                    player.y = player.y + 64;
+                    if (!checkElementHere(player.x, player.y + 64, stones)) {
+                        $(".player").animate({
+                            top: '+=64px'
+                        }, 1);
+                        player.y = player.y + 64;
+                        isVisited(player.x, player.y);
+                    }
                 }
-                isVisited(player.x, player.y);
             }
             // up
             if (e.keyCode === 119 || e.keyCode === 1094) {
                 if ($(".player").offset().top > 100) {
-                    $(".player").animate({
-                        top: '-=64px'
-                    }, 1);
-                    player.y = player.y - 64;
+                    if (!checkElementHere(player.x, player.y - 64, stones)) {
+                        $(".player").animate({
+                            top: '-=64px'
+                        }, 1);
+                        player.y = player.y - 64;
+                        isVisited(player.x, player.y);
+                    }
                 }
-                isVisited(player.x, player.y);
             }
         });
     });

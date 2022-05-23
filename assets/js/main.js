@@ -1,4 +1,7 @@
 let getHearts = 0;
+let downStones = [];
+
+let stones = [];
 // stopwatch params
 let seconds = 0;
 let minutes = 0;
@@ -43,7 +46,7 @@ function getRandPos(width, height) {
 // checking current position is el by coords
 function checkElementHere(x_coords, y_coords, el) {
 
-    for (let k = 0; k < 10; k += 1) {
+    for (let k = 0; k < el.length; k += 1) {
         if (el[k][0] === x_coords && el[k][1] === y_coords) {
             return true;
         }
@@ -80,6 +83,34 @@ function isVisited(x, y) {
 
 }
 
+function moveDown(id) {
+    $('#' + id).animate({
+        top: '+=10px'
+    }, 0.1);
+}
+
+function fallObj(player) {
+    let id = `${player.x}${player.y - 64}`;
+    let cls = $('#' + id).attr("class");
+    let clsList = cls.split(/\s+/);
+    for (let el of clsList) {
+        if (el === 'stone') {
+            downStones.push({
+                id: id,
+                x: player.x,
+                y: player.y - 64
+            });
+            for (let i = 0; i < stones.length; i++) {
+                if (stones[i][0] === player.x && stones[i][1] === player.y - 64) {
+                    stones.splice(i, 1);
+                }
+            }
+            console.log(stones.length);
+            window.setInterval(moveDown, 100, id);
+        }
+    }
+}
+
 $(document).ready(function () {
     const player = {
         x: 0,
@@ -91,8 +122,8 @@ $(document).ready(function () {
     //window params
     let width = $(window).width() - 63;
     let height = $(window).height() - 160;
+    
     // generating 10 randoms pos for stones
-    let stones = [];
     for (let i = 0; i < 10; i++) {
         pos = getRandPos(width, height);
         if (isBusy(pos[0], pos[1], stones)) {
@@ -111,8 +142,6 @@ $(document).ready(function () {
             hearts.push(pos);
         }
     }
-    console.log(stones);
-    // console.log(hearts);
 
     // field
     let max_w;
@@ -154,6 +183,7 @@ $(document).ready(function () {
                         }, 1);
                         player.x = player.x + 64;
                         isVisited(player.x, player.y);
+                        fallObj(player);
                     }
                 }
             }
@@ -166,6 +196,7 @@ $(document).ready(function () {
                         }, 1);
                         player.x = player.x - 64;
                         isVisited(player.x, player.y);
+                        fallObj(player);
                     }
                 }
             }
@@ -178,6 +209,7 @@ $(document).ready(function () {
                         }, 1);
                         player.y = player.y + 64;
                         isVisited(player.x, player.y);
+                        fallObj(player);
                     }
                 }
             }
@@ -190,6 +222,7 @@ $(document).ready(function () {
                         }, 1);
                         player.y = player.y - 64;
                         isVisited(player.x, player.y);
+                        fallObj(player);
                     }
                 }
             }

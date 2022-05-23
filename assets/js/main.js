@@ -15,7 +15,7 @@ let minutes = 0;
 let displaySeconds = 0;
 let displayMinutes = 0;
 
-let intervalIds = [];
+let intervalIds = {};
 
 //displaying stopwatch
 function displayStopwatch() {
@@ -87,9 +87,10 @@ function isVisited(x, y) {
             if (getHearts === 10) {
                 $("#screenRating").addClass('active');
                 end_flag = true;
-                for (let i = 0; i < intervalIds.length; i++) {
-                    window.clearInterval(intervalIds[i]);
+                for (let prop in intervalIds) {
+                    window.clearInterval(intervalIds[prop]);
                 }
+                return
             }
         }
     }
@@ -97,6 +98,7 @@ function isVisited(x, y) {
 }
 
 function moveDown(id) {
+    let cell;
     $('#' + id).animate({
         top: '+=10px'
     }, 0.1);
@@ -106,8 +108,24 @@ function moveDown(id) {
             if (Math.abs(downStones[i].x - player.x) <= 32 && Math.abs(downStones[i].y - player.y) <= 32) {
                 $('#screenLoss').addClass('active');
                 end_flag = true;
-                for (let j = 0; j < intervalIds.length; j++) {
-                    window.clearInterval(intervalIds[j]);
+                for (let prop in intervalIds) {
+                    window.clearInterval(intervalIds[prop]);
+                }
+                return
+            }
+            for (let j = 1; j < 32; j++) {
+                cell = $('.field').find('#' + downStones[i].x.toString() + (downStones[i].y + j).toString());
+                if (cell.length > 0) {
+                    if (cell.attr("class") == "cell ground") {
+                        window.clearInterval(intervalIds[id]);
+                        $('#' + id).hide()
+                        cell.removeClass('ground').addClass('stone')
+                        downStones.splice(i, 1);
+                        stones.push([cell.offset().left, cell.offset().top - 100]);
+                        console.log(downStones);
+                        console.log(stones);
+                        return
+                    }
                 }
             }
         }
@@ -137,14 +155,14 @@ function fallObj(player) {
                     y: player.y - 64
                 });
             }
-            
+
             for (let i = 0; i < stones.length; i++) {
                 if (stones[i][0] === player.x && stones[i][1] === player.y - 64) {
                     stones.splice(i, 1);
                 }
             }
             let intervalId = window.setInterval(moveDown, 100, id);
-            intervalIds.push(intervalId);
+            intervalIds[id] = intervalId;
         }
     }
 }
@@ -208,9 +226,10 @@ $(document).ready(function () {
         $("#screenWelcome").hide();
 
         let intervalId = window.setInterval(displayStopwatch, 1000); // start stopwatch
-        intervalIds.push(intervalId);
+        intervalIds['stopwatch'] = intervalId;
         $("body").keypress(function (e) {
             // right
+
             if (end_flag) {
                 return
             }

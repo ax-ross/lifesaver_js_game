@@ -1,3 +1,10 @@
+const player = {
+    x: 0,
+    y: 0
+}
+
+end_flag = false;
+
 let getHearts = 0;
 let downStones = [];
 
@@ -7,6 +14,8 @@ let seconds = 0;
 let minutes = 0;
 let displaySeconds = 0;
 let displayMinutes = 0;
+
+let intervalIds = [];
 
 //displaying stopwatch
 function displayStopwatch() {
@@ -77,6 +86,10 @@ function isVisited(x, y) {
             $("#hudHearts").text(getHearts.toString() + '/10');
             if (getHearts === 10) {
                 $("#screenRating").addClass('active');
+                end_flag = true;
+                for (let i = 0; i < intervalIds.length; i++) {
+                    window.clearInterval(intervalIds[i]);
+                }
             }
         }
     }
@@ -87,42 +100,64 @@ function moveDown(id) {
     $('#' + id).animate({
         top: '+=10px'
     }, 0.1);
+    for (let i = 0; i < downStones.length; i++) {
+        if (downStones[i].id == id) {
+            downStones[i].y += 10;
+            if (Math.abs(downStones[i].x - player.x) <= 32 && Math.abs(downStones[i].y - player.y) <= 32) {
+                $('#screenLoss').addClass('active');
+                end_flag = true;
+                for (let j = 0; j < intervalIds.length; j++) {
+                    window.clearInterval(intervalIds[j]);
+                }
+            }
+        }
+    }
 }
 
 function fallObj(player) {
     let id = `${player.x}${player.y - 64}`;
     let cls = $('#' + id).attr("class");
+    if (!cls) {
+        return
+    }
     let clsList = cls.split(/\s+/);
     for (let el of clsList) {
         if (el === 'stone') {
-            downStones.push({
-                id: id,
-                x: player.x,
-                y: player.y - 64
-            });
+            let flag = false;
+            for (let j = 0; j < downStones.length; j++) {
+                if (id == downStones[j].id) {
+                    flag = true;
+                    break
+                }
+            }
+            if (!flag) {
+                downStones.push({
+                    id: id,
+                    x: player.x,
+                    y: player.y - 64
+                });
+            }
+            
             for (let i = 0; i < stones.length; i++) {
                 if (stones[i][0] === player.x && stones[i][1] === player.y - 64) {
                     stones.splice(i, 1);
                 }
             }
-            console.log(stones.length);
-            window.setInterval(moveDown, 100, id);
+            let intervalId = window.setInterval(moveDown, 100, id);
+            intervalIds.push(intervalId);
         }
     }
 }
 
 $(document).ready(function () {
-    const player = {
-        x: 0,
-        y: 0
-    }
+
 
     let pos = [];
 
     //window params
     let width = $(window).width() - 63;
     let height = $(window).height() - 160;
-    
+
     // generating 10 randoms pos for stones
     for (let i = 0; i < 10; i++) {
         pos = getRandPos(width, height);
@@ -150,7 +185,7 @@ $(document).ready(function () {
             if (i === 0 && j === 0) {
                 $(".field").append(`<div class="cell" id="${i}${j}" style="left: ${i}px; top: ${j}px;"></div>`);
             } else if (checkElementHere(i, j, stones)) {
-                $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
+                $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px; z-index: 10"></div>`);
             } else if (checkElementHere(i, j, hearts)) {
                 $(".field").append(`<div class="cell heart" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
             } else {
@@ -172,9 +207,13 @@ $(document).ready(function () {
         $("#hudUsername").text(username);
         $("#screenWelcome").hide();
 
-        window.setInterval(displayStopwatch, 1000); // start stopwatch
+        let intervalId = window.setInterval(displayStopwatch, 1000); // start stopwatch
+        intervalIds.push(intervalId);
         $("body").keypress(function (e) {
             // right
+            if (end_flag) {
+                return
+            }
             if (e.keyCode === 100 || e.keyCode === 1074) {
                 if ($(".player").offset().left < max_w) {
                     if (!checkElementHere(player.x + 64, player.y, stones)) {

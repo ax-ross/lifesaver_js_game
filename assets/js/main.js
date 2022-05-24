@@ -1,24 +1,33 @@
-const player = {
+// GLOBAL VARIABLES
+const player = { // player coords
     x: 0,
     y: 0
 }
 
-end_flag = false;
+end_flag = false; // if true - game ended
 
-let height;
+// Game window params
+let height = $(window).height() - 128;
+let width = $(window).width() - 63;
 
+// Coords of 10 random pos
+let stones = [];
+let hearts = [];
+
+// collected hearts
 let getHearts = 0;
+
+// falling
 let downStones = [];
 let downHearts = [];
 
-let stones = [];
-let hearts = [];
 // stopwatch params
 let seconds = 0;
 let minutes = 0;
 let displaySeconds = 0;
 let displayMinutes = 0;
 
+// array of all intervalids on page
 let intervalIds = {};
 
 //displaying stopwatch
@@ -56,6 +65,52 @@ function getRandPos(width, height) {
     return res;
 }
 
+// generating 10 randoms pos for stones
+function generatingStones() {
+    let pos;
+    for (let i = 0; i < 10; i++) {
+        pos = getRandPos(width, height);
+        if (isBusy(pos[0], pos[1], stones)) {
+            i--;
+        } else {
+            stones.push(pos);
+        }
+    }
+}
+
+// generating 10 randoms pos for hearts
+function generatingHearts() {
+    let pos;
+    for (let i = 0; i < 10; i++) {
+        pos = getRandPos(width, height);
+        if (isBusy(pos[0], pos[1], stones) || isBusy(pos[0], pos[1], hearts)) {
+            i--;
+        } else {
+            hearts.push(pos);
+        }
+    }
+}
+
+// generating field with ground, hearts and stones
+function generatingField() {
+    let max_w;
+    for (let i = 0; i < width; i += 64) {
+        for (let j = 0; j < height; j += 64) {
+            if (i === 0 && j === 0) {
+                $(".field").append(`<div class="cell" id="${i}${j}" style="left: ${i}px; top: ${j}px;"></div>`);
+            } else if (checkElementHere(i, j, stones)) {
+                $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px; z-index: 10"></div>`);
+            } else if (checkElementHere(i, j, hearts)) {
+                $(".field").append(`<div class="cell heart" id="${i}${j}"  style="left: ${i}px; top: ${j}px; z-index: 10"></div>`);
+            } else {
+                $(".field").append(`<div class="cell ground" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
+            }
+            max_w = i;
+        }
+    }
+    return max_w;
+}
+
 // checking current position is el by coords
 function checkElementHere(x_coords, y_coords, el) {
 
@@ -67,6 +122,7 @@ function checkElementHere(x_coords, y_coords, el) {
     return false;
 }
 
+// check pos is busy
 function isBusy(x, y, arr) {
     for (let k = 0; k < arr.length; k++) {
         if (arr[k][0] === x && arr[k][1] === y) {
@@ -94,7 +150,6 @@ function isVisited(x, y) {
             if (flag) {
                 $(`#${x}${y}`).removeClass('heart');
                 getHearts++;
-                console.log($(`#${x}${y}`));
                 $("#hudHearts").text(getHearts.toString() + '/10');
                 if (getHearts === 10) {
                     $("#screenRating").addClass('active');
@@ -111,6 +166,7 @@ function isVisited(x, y) {
 
 }
 
+// handling behavior of falling stones and hearts
 function moveDown(id, type) {
     let cell;
     if ($('#' + id).offset().top > height + 64) {
@@ -143,7 +199,6 @@ function moveDown(id, type) {
                 if (Math.abs(downStones[i].x - player.x) <= 32 && Math.abs(downStones[i].y - player.y) <= 32) {
                     $('#screenLoss').addClass('active');
                     end_flag = true;
-                    console.log('END');
                     for (let prop in intervalIds) {
                         window.clearInterval(intervalIds[prop]);
                     }
@@ -208,7 +263,8 @@ function moveDown(id, type) {
     }
 }
 
-function fallObj(player) {
+// starting falling stones and hearts
+function fallObj() {
     let id = `${player.x}${player.y - 64}`;
     let cls = $('#' + id).attr("class");
     if (!cls) {
@@ -269,49 +325,15 @@ function fallObj(player) {
 }
 
 $(document).ready(function () {
+    
+    // generating stones and hearts pos
+    generatingStones();
+    generatingHearts();
+    
+    // generating field
+    let max_w = generatingField();
 
-
-    let pos = [];
-
-    //window params
-    let width = $(window).width() - 63;
-    height = $(window).height() - 128;
-    // generating 10 randoms pos for stones
-    for (let i = 0; i < 10; i++) {
-        pos = getRandPos(width, height);
-        if (isBusy(pos[0], pos[1], stones)) {
-            i--;
-        } else {
-            stones.push(pos);
-        }
-    }
-    // generating 10 randoms pos for hearts
-    for (let i = 0; i < 10; i++) {
-        pos = getRandPos(width, height);
-        if (isBusy(pos[0], pos[1], stones) || isBusy(pos[0], pos[1], hearts)) {
-            i--;
-        } else {
-            hearts.push(pos);
-        }
-    }
-
-    // field
-    let max_w;
-    for (let i = 0; i < width; i += 64) {
-        for (let j = 0; j < height; j += 64) {
-            if (i === 0 && j === 0) {
-                $(".field").append(`<div class="cell" id="${i}${j}" style="left: ${i}px; top: ${j}px;"></div>`);
-            } else if (checkElementHere(i, j, stones)) {
-                $(".field").append(`<div class="cell stone" id="${i}${j}"  style="left: ${i}px; top: ${j}px; z-index: 10"></div>`);
-            } else if (checkElementHere(i, j, hearts)) {
-                $(".field").append(`<div class="cell heart" id="${i}${j}"  style="left: ${i}px; top: ${j}px; z-index: 10"></div>`);
-            } else {
-                $(".field").append(`<div class="cell ground" id="${i}${j}"  style="left: ${i}px; top: ${j}px;"></div>`);
-            }
-            max_w = i;
-        }
-    }
-
+    // active username submit
     $("#username").keyup(function (e) {
         $('#submitusername').prop("disabled", false);
     });
@@ -326,12 +348,12 @@ $(document).ready(function () {
 
         let intervalId = window.setInterval(displayStopwatch, 1000); // start stopwatch
         intervalIds['stopwatch'] = intervalId;
+        
         $("body").keypress(function (e) {
-            // right
-
             if (end_flag) {
                 return
             }
+            // right
             if (e.keyCode === 100 || e.keyCode === 1074) {
                 if ($(".player").offset().left < max_w) {
                     if (!checkElementHere(player.x + 64, player.y, stones)) {
@@ -340,7 +362,7 @@ $(document).ready(function () {
                         }, 1);
                         player.x = player.x + 64;
                         isVisited(player.x, player.y);
-                        fallObj(player);
+                        fallObj();
                     }
                 }
             }
@@ -353,7 +375,7 @@ $(document).ready(function () {
                         }, 1);
                         player.x = player.x - 64;
                         isVisited(player.x, player.y);
-                        fallObj(player);
+                        fallObj();
                     }
                 }
             }
@@ -366,7 +388,7 @@ $(document).ready(function () {
                         }, 1);
                         player.y = player.y + 64;
                         isVisited(player.x, player.y);
-                        fallObj(player);
+                        fallObj();
                     }
                 }
             }
@@ -379,7 +401,7 @@ $(document).ready(function () {
                         }, 1);
                         player.y = player.y - 64;
                         isVisited(player.x, player.y);
-                        fallObj(player);
+                        fallObj();
                     }
                 }
             }

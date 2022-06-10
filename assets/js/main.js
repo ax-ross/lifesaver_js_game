@@ -22,7 +22,7 @@ let downStones = [];
 let downHearts = [];
 
 // stopwatch params
-let seconds = 0;
+let seconds = 60;
 let minutes = 0;
 let displaySeconds = 0;
 let displayMinutes = 0;
@@ -32,11 +32,12 @@ let intervalIds = {};
 
 //displaying stopwatch
 function displayStopwatch() {
-    seconds++;
-    if (seconds / 60 === 1) {
-        seconds = 0;
-        minutes++;
-    }
+    seconds = seconds - 1;
+
+    // if (seconds / 60 === 1) {
+    //     seconds = 0;
+    //     minutes++;
+    // }
 
     if (seconds < 10) {
         displaySeconds = "0" + seconds.toString();
@@ -50,7 +51,17 @@ function displayStopwatch() {
         displayMinutes = minutes;
     }
 
+    if (seconds === 0) {
+        $('#screenLoss').addClass('active');
+        end_flag = true;
+        for (let prop in intervalIds) {
+            window.clearInterval(intervalIds[prop]);
+        }
+        return
+    }
+
     document.getElementById("hudTime").innerHTML = displayMinutes + ":" + displaySeconds;
+    
 }
 
 // get 10 randoms position at field
@@ -174,7 +185,7 @@ function moveDown(id, type) {
         for (let i = 0; i < 300; i++) {
             let j = $('#' + id).offset().left.toString() + ($('#' + id).offset().top - i).toString()
             if ($('.field').find('#' + j).length > 0) {
-                if (type == 'heart') {  
+                if (type == 'heart') {
                     $('.field').find('#' + j).addClass('heart');
                     $('#' + id).removeClass("heart")
                     hearts.push([$('#' + id).offset().left, $('#' + id).offset().top - i])
@@ -183,7 +194,7 @@ function moveDown(id, type) {
                     $('#' + id).removeClass("stone")
                     stones.push([$('#' + id).offset().left, $('#' + id).offset().top - i])
                 }
-                
+
                 break
             }
         }
@@ -319,17 +330,17 @@ function fallObj() {
             }
 
 
-            
+
         }
     }
 }
 
 $(document).ready(function () {
-    
+
     // generating stones and hearts pos
     generatingStones();
     generatingHearts();
-    
+
     // generating field
     let max_w = generatingField();
 
@@ -348,7 +359,7 @@ $(document).ready(function () {
 
         let intervalId = window.setInterval(displayStopwatch, 1000); // start stopwatch
         intervalIds['stopwatch'] = intervalId;
-        
+
         $("body").keypress(function (e) {
             if (end_flag) {
                 return
